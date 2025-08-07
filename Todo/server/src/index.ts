@@ -8,7 +8,8 @@ const app = express();
 const PORT = config.PORT || 5000;
 
 (async () => {
-    const email = 'keshup1m@gmail.com'; 
+    const email = 'keshup1m@gmail.com'; // ✅ Replace with your test email
+    const otp = '123456';
     const result = await sendOTPEmail(email, otp);
 
     if (result) {
