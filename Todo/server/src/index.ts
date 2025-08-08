@@ -1,24 +1,23 @@
-// server/src/index.ts
-import { sendOTPEmail } from './Utils/mailer.ts';
-import express from 'express';
-import config from "../src/config/dotenv.ts";
 
+import express from 'express';
+import cookieParser from 'cookie-parser'; 
+import config from "../src/config/dotenv.ts"
+import authRoutes from './routes/auth.routes.ts'; 
 
 const app = express();
-const PORT = config.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
-(async () => {
-    const email = 'keshup1m@gmail.com'; // ✅ Replace with your test email
-    const otp = '123456';
-    const result = await sendOTPEmail(email, otp);
+app.use(express.json());
 
-    if (result) {
-        console.log(' Test OTP email sent successfully!');
-    } else {
-        console.log('Failed to send test OTP email.');
-    }
-})();
+app.use(cookieParser());
+
+
+app.use('/api/v1', authRoutes);
+
+app.get('/', (req, res) => {
+    res.send('Welcome to the MERN stack API!');
+});
 
 app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });

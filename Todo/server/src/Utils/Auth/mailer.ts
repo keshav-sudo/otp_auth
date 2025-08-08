@@ -1,5 +1,5 @@
 import * as nodemailer from "nodemailer"; 
-import config from "../config/dotenv.ts"
+import config from "../../config/dotenv.ts"
 
 const FROM = config.EMAIL_FROM;
 const PASS = config.EMAIL_PASS;

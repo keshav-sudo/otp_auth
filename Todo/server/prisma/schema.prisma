@@ -22,8 +22,6 @@ model User {
   password  String
   role      Role
   isVerified Boolean @default(false)
-  otp        String?   
-  otpExpires DateTime? 
   createdAt DateTime @default(now())
   updateAt  DateTime @updatedAt
 }
