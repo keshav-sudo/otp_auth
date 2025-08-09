@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { email, z } from "zod";
 
 
 const roleEnum = z.enum(["USER", "ADMIN"]);
@@ -22,3 +22,7 @@ export const verifyOtpSchema = z.object({
   email: z.string().email(),
   otp: z.string().length(6, "OTP must be 6 digits"),
 });
+
+export const resetpassword = z.object({
+  email : z.string().email();
+})

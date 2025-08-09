@@ -2,14 +2,16 @@ import {Response , Request} from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../Utils/db.ts";
+import { senOtpforverification } from "../Utils/Auth/sendOtpforverification.ts";
 import config from "../config/dotenv.ts"
-import { sendOTPEmail } from "../Utils/Auth/mailer.ts";
+
 import redisClient from "../Utils/RedisClient.ts";
 import { registerSchema, loginSchema,  } from "../types/auth.type.ts";
-import { getOtpFromRedis , saveOtpToRedis , verifyOtp } from "../Utils/Auth/Otpstore.ts";
-import { sendOtpSchema , verifyOtpSchema  } from "../types/Otp.types.ts";
-import { verifyToken , generateToken  } from "../Utils/verifyToken.ts";
-import { generateOTP } from "../Utils/Auth/Otpgenerator.ts";
+import { verifyOtp } from "../Utils/Auth/Otpstore.ts";
+import { resetpassword } from "../types/auth.type.ts";
+import {  verifyOtpSchema  } from "../types/Otp.types.ts";
+import {  generateToken  } from "../Utils/verifyToken.ts";
+
 
 const JWT_SECRET = config.JWT_SECRET as string;
 const COOKIE_NAME = "token";
@@ -50,9 +52,7 @@ const COOKIE_NAME = "token";
             }
         })
 
-        const otp = generateOTP(6);
-        await saveOtpToRedis(data.email , otp);
-        await sendOTPEmail(data.email , otp);
+        const sendotp = await senOtpforverification(data.email);
 
         return res.status(201).json({
         success: true,
@@ -71,8 +71,8 @@ const COOKIE_NAME = "token";
     const verify_otp= async(req: Request , res:Response ) => {
 
     try {
-        const {email} = req.params;
-        const {otp} = req.body;
+       
+        const {email,otp} = req.body;
 
      
         const {success , data , error} = verifyOtpSchema.safeParse({email , otp});
@@ -140,7 +140,7 @@ const COOKIE_NAME = "token";
                 errors: error.issues
             });
         }
-       console.log("in before 1");
+       
           const findUser = await prisma.user.findUnique({
             where: { email: data.email },
             select: {
@@ -175,27 +175,20 @@ const COOKIE_NAME = "token";
                 httpOnly : true,
                 secure: process.env.NODE_ENV === "production",
                 maxAge: 7 * 24 * 60 * 60 * 1000,
-                })
+            });
 
             return res.status(201).json({
             success: true,
             message: "User login successfully",
         });
-        }
-       
-             const otp = generateOTP(6);
-
-             await saveOtpToRedis(data.email , otp);
-
-             await sendOTPEmail(data.email ,  otp);
-
-
-            return res.status(403).json({
+        }else{
+            await senOtpforverification(findUser.email);
+              return res.status(403).json({
                 success : false,
                 message : "Your account is not verified firstly verify the account",
                 redirect : "verify-otp"
             }) 
-        
+        }
 
           
           
@@ -207,6 +200,29 @@ const COOKIE_NAME = "token";
 }
 
 
+export const reset_password = async(req: Request , res:Response) => {
+    const {email} = req.body;
+    const {success , data , error} = reset_password.safeParse(req.body);
+    if(!success){
+        return res.status(400).json({
+            message : "invailid email"
+        })
+    }
+    const user = await prisma.user.findUnique({
+      where: { email: data.email },
+      select: {
+          id: true,
+          password: true,
+          isVerified: true,
+          name: true
+  }
+});
+
+  if(!user){
+    return res.status()
+  }
+}
+ 
 export default {
       register ,
       login,
