@@ -18,7 +18,7 @@ export const sendOTPEmail = async (to: string , otp: string) => {
     const mailOptions = {
         from: `Todo App`,
         to, 
-        subject: "Your OTP Code",
+        subject: "RUCHIN MAMA HAPPY BURTHDAY",
         html: `
       <div style="font-family: sans-serif;">
         <h2>Your OTP Code</h2>
