@@ -2,7 +2,7 @@ import Redis from "ioredis";
 import config from "../../src/config/dotenv.ts";
 
 const HOST = config.REDIS_HOST;
-const PORT = config.REDIS_PORT
+const PORT = config.REDIS_PORT || 6379;
 
 
 const redisClient = new Redis({

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "node --loader ts-node/esm src/index.ts",
+    "dev": "node --import ts-node/esm src/index.ts",
     "build": "npx tsc"
   },
   "keywords": [],

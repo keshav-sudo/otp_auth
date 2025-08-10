@@ -1,4 +1,5 @@
-import {Response , Request} from "express";
+import express from "express";
+import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../Utils/db.ts";
@@ -8,9 +9,10 @@ import config from "../config/dotenv.ts"
 import redisClient from "../Utils/RedisClient.ts";
 import { registerSchema, loginSchema,  } from "../types/auth.type.ts";
 import { verifyOtp } from "../Utils/Auth/Otpstore.ts";
-import { resetpassword } from "../types/auth.type.ts";
+import { resetpasswordschema } from "../types/auth.type.ts";
 import {  verifyOtpSchema  } from "../types/Otp.types.ts";
 import {  generateToken  } from "../Utils/verifyToken.ts";
+import { tr } from "zod/locales";
 
 
 const JWT_SECRET = config.JWT_SECRET as string;
@@ -57,7 +59,10 @@ const COOKIE_NAME = "token";
         return res.status(201).json({
         success: true,
         message: "User registered. OTP sent to your email for verification.",
-        next: "verify-otp",
+        data : {
+            next: "verify-otp",
+        }
+        
         });
 
         
@@ -87,7 +92,7 @@ const COOKIE_NAME = "token";
         if(!isValid){
             return res.status(400).json({
                 success : false,
-                masage: "Invailid or wrong otp inputs"
+                message : "Invailid or wrong otp inputs"
             })
         }
 
@@ -100,7 +105,7 @@ const COOKIE_NAME = "token";
         if(!userfind){
             return res.status(400).json({
                 success : false,
-                massage : "Cant find email "
+                message : "Cant find email "
             }) }
 
         await redisClient.del(`otp:${data?.email}`);
@@ -156,7 +161,7 @@ const COOKIE_NAME = "token";
         if(!findUser) {
             return res.status(404).json({
                 success : false,
-                massage : "User not find"
+                message : "User not find"
             });
         }
 
@@ -186,7 +191,10 @@ const COOKIE_NAME = "token";
               return res.status(403).json({
                 success : false,
                 message : "Your account is not verified firstly verify the account",
-                redirect : "verify-otp"
+                data : {
+                    redirect : "verify-otp"
+                }
+                
             }) 
         }
 
@@ -199,32 +207,155 @@ const COOKIE_NAME = "token";
     }
 }
 
-
-export const reset_password = async(req: Request , res:Response) => {
+const reset_password = async(req: Request , res:Response) => {
     const {email} = req.body;
-    const {success , data , error} = reset_password.safeParse(req.body);
+    const {data , success , error} = resetpasswordschema.safeParse(req.body);
     if(!success){
         return res.status(400).json({
-            message : "invailid email"
+            message : "given body is not right" 
         })
     }
-    const user = await prisma.user.findUnique({
-      where: { email: data.email },
-      select: {
-          id: true,
-          password: true,
-          isVerified: true,
-          name: true
-  }
-});
 
-  if(!user){
-    return res.status()
-  }
+    const findUser = await prisma.user.findUnique({
+        where : {email : data.email},
+        select : {
+            id : true,
+            isVerified : true ,
+            name : true,
+            email  :true
+        }
+    })
+
+    if(!findUser || !findUser.email){
+        return res.status(400).json({
+            message : "Your not find in the database"
+        })
+    }
+    
+
+   const send = await senOtpforverification(findUser.email);
+     if (!send) {
+        return res.status(400).json({
+            message: "There was some error while sending reset email"
+        });
+    }
+
+
+
+   return res.status(200).json({
+    message : "Your have redirect in reset-password route",
+    data : {
+        redirect : "reset_otp_verification"
+    }
+    
+   })
+
+
 }
+export const reset_otp_verification = async (req: Request, res: Response) => {
+  try {
+    const parseResult = verifyOtpSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Given body is not valid",
+        errors: parseResult.error?.issues,
+      });
+    }
+    const { email, otp } = parseResult.data;
+
+    const isOtpValid = await verifyOtp(email, otp);
+    if (!isOtpValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "OTP is verified, now you can change your password",
+      redirect: "reset-password",
+    });
+  } catch (error) {
+    console.error("Reset OTP Verification Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const reset_password_final = async (req: Request, res: Response) => {
+  // Assume loginSchema me email aur newpassword defined hai
+  const { success, data, error } = loginSchema.safeParse(req.body);
+
+  if (!success) {
+    return res.status(400).json({
+      message: "There is some error in new password or email",
+      error,
+    });
+  }
+
+  const findUser = await prisma.user.findUnique({
+    where: { email: data.email },
+    select: {
+      id: true,
+      password: true,
+      email: true,
+      isVerified: true,
+      name: true,
+    },
+  });
+
+  if (!findUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+
+  const isPasswordSame = await bcrypt.compare(data.password, findUser.password);
+
+
+  if (!findUser.isVerified || !isPasswordSame) {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(data.password, salt);
+
+    const updatedUser = await prisma.user.update({
+      where: { email: data.email },
+      data: {
+        isVerified: true,
+        password: hashedPassword,
+      },
+    });
+
+    if (!updatedUser) {
+      return res.status(500).json({
+        message: "Failed to update password",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Password updated and user verified successfully",
+      user: {
+        name: updatedUser.name,
+        email: updatedUser.email,
+      },
+    });
+  }
+
+  
+  return res.status(200).json({
+    success: true,
+    message: "User is already verified and password is up-to-date",
+  });
+};
  
 export default {
       register ,
       login,
-      verify_otp
+      verify_otp,
+      reset_otp_verification,
+      reset_password,
+      reset_password_final
 }
