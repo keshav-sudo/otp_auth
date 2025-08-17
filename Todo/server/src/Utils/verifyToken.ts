@@ -6,11 +6,11 @@ import config from "../config/dotenv.ts";
 
 interface Tokenpayload {
     id : string;
-    
-     email?: string;
-     role?: "user" | "admin"; 
-     iat?: number;         
-     exp?: number;        
+    isVerified : boolean;
+    email?: string;
+    role?: "user" | "admin"; 
+    iat?: number;         
+    exp?: number;        
 }
 
 

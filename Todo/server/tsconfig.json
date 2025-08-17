@@ -6,7 +6,7 @@
     "outDir": "./dist",
     "noEmit": true,
     "esModuleInterop": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true,

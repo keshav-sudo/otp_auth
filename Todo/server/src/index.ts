@@ -3,6 +3,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser'; 
 import config from "../src/config/dotenv.ts"
 import authRoutes from './routes/auth.routes.ts'; 
+import userRoutes  from '../src/routes/user.routes.ts';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,6 +14,7 @@ app.use(cookieParser());
 
 
 app.use('/api/v1', authRoutes);
+app.use('/api/v1', userRoutes);
 
 app.get('/', (req, res) => {
     res.send('Welcome to the MERN stack API!');

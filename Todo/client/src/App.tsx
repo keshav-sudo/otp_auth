@@ -1,10 +1,10 @@
-import Authpagemodel from "../../client/src/components/modelui/authpagemodel"
+
+
 const App = () => {
   return (
-    <>
-    <Authpagemodel/>
-    </>
-  )
-}
+    
+<h1>hello</h1>
+  );
+};
 
-export default App
+export default App;

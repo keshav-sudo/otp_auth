@@ -1,5 +1,6 @@
 import express from "express";
 import type { Request, Response } from "express";
+import type { AuthRequest } from "../types/user.tstype.ts";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../Utils/db.ts";
@@ -113,6 +114,7 @@ const COOKIE_NAME = "token";
             const token = generateToken({
               id: String(userfind.id),
               email: userfind.email,
+              isVerified : userfind.isVerified
              });
 
            res.cookie(COOKIE_NAME, token, {
@@ -169,13 +171,15 @@ const COOKIE_NAME = "token";
 
         if(!isMatch){
             return res.status(400).json({
-                message: "User not found"
+                message: "User given Password is not matched"
             })
         }
 
         const isverification = findUser?.isVerified == true ;
         if(isverification){
-            const token = generateToken({id : findUser.id.toString(), email : findUser.email});
+            const token = generateToken({id : findUser.id.toString(), 
+              isVerified : findUser.isVerified,
+               email : findUser.email});
             res.cookie(COOKIE_NAME , token, {
                 httpOnly : true,
                 secure: process.env.NODE_ENV === "production",
@@ -186,18 +190,7 @@ const COOKIE_NAME = "token";
             success: true,
             message: "User login successfully",
         });
-        }else{
-            await senOtpforverification(findUser.email);
-              return res.status(403).json({
-                success : false,
-                message : "Your account is not verified firstly verify the account",
-                data : {
-                    redirect : "verify-otp"
-                }
-                
-            }) 
         }
-
           
           
         
