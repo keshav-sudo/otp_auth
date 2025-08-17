@@ -344,11 +344,14 @@ const reset_password_final = async (req: Request, res: Response) => {
   });
 };
  
-export default {
-      register ,
-      login,
-      verify_otp,
-      reset_otp_verification,
-      reset_password,
-      reset_password_final
-}
+// at the bottom of user.controller.ts
+const userController = {
+  register,
+  login,
+  verify_otp,
+  reset_otp_verification,
+  reset_password,
+  reset_password_final
+};
+
+export default userController;
