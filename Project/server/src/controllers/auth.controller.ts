@@ -2,9 +2,9 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../Utils/db.ts";
-import { senOtpforverification } from "../Utils/Auth/sendOtpforverification.ts";
+import { senOtpforverification } from "../Utils/sendOtpforverification.ts";
 import config from "../config/dotenv.ts"
-import { AuthRequest } from "../types/user.tstype.ts";
+
 import redisClient from "../Utils/RedisClient.ts";
 import { registerSchema, loginSchema, resetpasswordfinalschema, usernameSchema,  } from "../types/auth.type.ts";
 import { verifyOtp } from "../Utils/Auth/Otpstore.ts";

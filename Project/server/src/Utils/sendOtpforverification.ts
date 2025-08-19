@@ -1,6 +1,6 @@
-import { generateOTP } from "./Otpgenerator.ts";
-import { saveOtpToRedis } from "./Otpstore.ts";
-import { sendOTPEmail } from "./mailer.ts";
+import { generateOTP } from "./Auth/Otpgenerator.ts";
+import { saveOtpToRedis } from "./Auth/Otpstore.ts";
+import { sendOTPEmail } from "./Auth/mailer.ts";
 
 export const senOtpforverification = async (email: string): Promise<boolean> => {
     try {
