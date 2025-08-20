@@ -7,7 +7,7 @@
     "start": "node dist/index.js",
     "dev": "node --import ts-node/esm src/index.ts",
     "build": "npx tsc",
-    "test" : "jest"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +24,7 @@
     "@types/mongoose": "^5.11.96",
     "@types/nodemailer": "^6.4.17",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -32,6 +33,8 @@
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.0",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.5",
     "pg": "^8.16.3",
     "rate-limit-redis": "^4.2.1",
@@ -41,6 +44,7 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.2.0",
     "@types/supertest": "^6.0.3",
     "jest": "^30.0.5",
